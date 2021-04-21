@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from copy import deepcopy
 
 from django.conf import settings
@@ -148,13 +146,17 @@ class ModelAdminReorder(MiddlewareMixin):
             # or app_list view, bail out!
             return response
 
-        try:
+        if 'app_list' in response.context_data:
             app_list = response.context_data['app_list']
-        except KeyError:
-            # there is no app_list! nothing to reorder
+            context_key = 'app_list'
+        # handle django 3.1 sidebar
+        elif 'available_apps' in response.context_data:
+            app_list = response.context_data['available_apps']
+            context_key = 'available_apps'
+        else:  # nothing to reorder, return response
             return response
 
         self.init_config(request, app_list)
         ordered_app_list = self.get_app_list()
-        response.context_data['app_list'] = ordered_app_list
+        response.context_data[context_key] = ordered_app_list
         return response
